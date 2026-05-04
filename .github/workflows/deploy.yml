@@ -1,0 +1,42 @@
+name: Terraform Deploy LocalStack
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    services:
+      localstack:
+        image: localstack/localstack:3.0
+        ports:
+          - 4566:4566
+        env:
+          SERVICES: s3
+          DEBUG: 1
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      - name: Esperar a LocalStack
+        run: |
+          sleep 10
+          curl http://localhost:4566
+
+      - name: Terraform init
+        run: terraform init
+
+      - name: Terraform plan
+        run: terraform plan
+
+      - name: Terraform apply
+        run: terraform apply -auto-approve
